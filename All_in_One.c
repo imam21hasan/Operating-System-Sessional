@@ -12,7 +12,7 @@ void printTable(int n, int pid[], int at[], int bt[], int ct[], int tat[], int w
     }
 }
 
-// -------- FCFS --------
+// FCFS
 void fcfs(int n, int at[], int bt[])
 {
     int ct[MAX], tat[MAX], wt[MAX], rt[MAX], pid[MAX];
@@ -82,7 +82,7 @@ void fcfs(int n, int at[], int bt[])
     printTable(n, pid, at, bt, ct, tat, wt, rt);
 }
 
-// -------- SJF --------
+// SJF
 void sjf(int n, int at[], int bt[])
 {
     int ct[MAX], tat[MAX], wt[MAX], rt[MAX], completed[MAX] = {0}, pid[MAX];
@@ -146,7 +146,7 @@ void sjf(int n, int at[], int bt[])
     printTable(n, pid, at, bt, ct, tat, wt, rt);
 }
 
-// -------- SRTF --------
+// SRTF
 void srtf(int n, int at[], int bt[])
 {
     int pid[MAX], rt[MAX], wt[MAX], tat[MAX], ct[MAX];
@@ -247,7 +247,7 @@ void srtf(int n, int at[], int bt[])
     printTable(n, pid, at, bt, ct, tat, wt, rt);
 }
 
-// -------- Round Robin --------
+// Round Robin
 void rr(int n, int at[], int bt[])
 {
     int tq;
@@ -325,7 +325,7 @@ void rr(int n, int at[], int bt[])
     printTable(n, pid, at, bt, ct, tat, wt, rt);
 }
 
-// -------- Priority Scheduling --------
+// Priority Scheduling
 void priorityScheduling(int n, int at[], int bt[])
 {
     int priority[MAX];
