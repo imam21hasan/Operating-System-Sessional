@@ -1,36 +1,28 @@
 #include <iostream>
 using namespace std;
 
-int p, r;
+int n, m;
 int alloc[10][10], maxR[10][10], need[10][10], avail[10];
 
 bool isSafe()
 {
     int work[10];
-    bool finish[10];
+    bool finish[10] = {false};
     int safeSeq[10];
     int count = 0;
 
-    for (int i = 0; i < p; i++)
-    {
-        finish[i] = false;
-    }
-
-    for (int i = 0; i < r; i++)
-    {
+    for (int i = 0; i < m; i++)
         work[i] = avail[i];
-    }
 
-    while (count < p)
+    while (count < n)
     {
         bool found = false;
-        for (int i = 0; i < p; i++)
+        for (int i = 0; i < n; i++)
         {
             if (!finish[i])
             {
                 bool ok = true;
-
-                for (int j = 0; j < r; j++)
+                for (int j = 0; j < m; j++)
                 {
                     if (need[i][j] > work[j])
                     {
@@ -38,9 +30,10 @@ bool isSafe()
                         break;
                     }
                 }
+
                 if (ok)
                 {
-                    for (int j = 0; j < r; j++)
+                    for (int j = 0; j < m; j++)
                     {
                         work[j] += alloc[i][j];
                     }
@@ -51,61 +44,56 @@ bool isSafe()
             }
         }
         if (!found)
-        {
-            cout << "\nThe system is not in a safe state!" << endl;
-            return false;
-        }
+            break;
     }
 
-    cout << "\nThe system is in a SAFE state.\nFollowing is the SAFE Sequence : ";
-    for (int i = 0; i < p - 1; i++)
+    if (count == n)
     {
-        cout << " P" << safeSeq[i] << " ->";
+        cout << "\nThe system is in a safe state.";
+        cout << "\nSafe sequence : ";
+        for (int i = 0; i < n; i++)
+            cout << "P" << safeSeq[i] + 1 << (i < n - 1 ? " -> " : "\n");
+        return true;
     }
-    cout << " P" << safeSeq[p - 1] << endl;
-
-    return true;
+    else
+    {
+        cout << "\nThe system is in an unsafe state.";
+        return false;
+    }
 }
 
 int main()
 {
-    cout << "Enter the number of processes : ";
-    cin >> p;
+    cout << "Number of Processes : ";
+    cin >> n;
+    cout << "Number of Resources : ";
+    cin >> m;
 
-    cout << "\nEnter the number of Resouces : ";
-    cin >> r;
-
-    cout << "\nAllocation matrix :\n";
-    for (int i = 0; i < p; i++)
+    cout << "\nAllocation Matrix :\n";
+    for (int i = 0; i < n; i++)
     {
-        cout << "p-" << i + 1 << " : ";
-        for (int j = 0; j < r; j++)
-        {
+        cout << "P" << i + 1 << ": ";
+        for (int j = 0; j < m; j++)
             cin >> alloc[i][j];
-        }
     }
 
-    cout << "\nMax matrix :\n";
-    for (int i = 0; i < p; i++)
+    cout << "\nMax Matrix :\n";
+    for (int i = 0; i < n; i++)
     {
-        cout << "p-" << i + 1 << " : ";
-        for (int j = 0; j < r; j++)
-        {
+        cout << "P" << i + 1 << ": ";
+        for (int j = 0; j < m; j++)
             cin >> maxR[i][j];
-        }
     }
 
     cout << "\nAvailable : ";
-    for (int i = 0; i < r; i++)
-    {
-        cin >> avail[i];
-    }
+    for (int j = 0; j < m; j++)
+        cin >> avail[j];
 
-    cout << "\nNeed matrix :\n";
-    for (int i = 0; i < p; i++)
+    cout << "\nNeed Matrix :\n";
+    for (int i = 0; i < n; i++)
     {
-        cout << "p-" << i << " : ";
-        for (int j = 0; j < r; j++)
+        cout << "P" << i + 1 << ": ";
+        for (int j = 0; j < m; j++)
         {
             need[i][j] = maxR[i][j] - alloc[i][j];
             cout << need[i][j] << " ";
@@ -114,5 +102,6 @@ int main()
     }
 
     isSafe();
+
     return 0;
 }
