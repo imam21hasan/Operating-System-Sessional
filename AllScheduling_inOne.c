@@ -248,13 +248,15 @@ void srtf(int n, int at[], int bt[])
 }
 
 // -------- Round Robin --------
-void rr(int n, int at[], int bt[])
-{
+void roundRobin(int n, int at[], int bt[])
+{ 
     int tq;
     printf("Enter Time Quantum: ");
-    scanf("%d", &tq);
+    scanf("%d", &tq); 
 
-    int rem_bt[MAX], ct[MAX], tat[MAX], wt[MAX], rt[MAX], visited[MAX] = {0}, pid[MAX];
+    int pid[MAX], rem_bt[MAX];
+    int ct[MAX], tat[MAX], wt[MAX], rt[MAX];
+    int visited[MAX] = {0};
 
     for (int i = 0; i < n; i++)
     {
@@ -262,67 +264,111 @@ void rr(int n, int at[], int bt[])
         rem_bt[i] = bt[i];
     }
 
-    int time = 0, completed = 0;
-    int timeline[MAX], t_index = 0;
+    int queue[MAX];
+    int front = 0, rear = 0;
 
-    printf("\n|");
+    int completed = 0;
+    int time = 0;
+
+    int g_pid[MAX * 10], timeline[MAX * 10];
+    int g_index = 0, t_index = 0;
+
+    /* Add processes that arrive at time 0 */
+    for (int i = 0; i < n; i++)
+    {
+        if (at[i] == 0)
+        {
+            queue[rear++] = i;
+            visited[i] = 1;
+        }
+    }
 
     while (completed < n)
     {
-        int executed = 0;
-
-        for (int i = 0; i < n; i++)
+        if (front == rear)
         {
-            if (at[i] <= time && rem_bt[i] > 0)
-            {
+            g_pid[g_index++] = 0;
+            timeline[t_index++] = time;
+            time++;
 
-                if (!visited[i])
+            for (int i = 0; i < n; i++)
+            {
+                if (!visited[i] && at[i] <= time)
                 {
-                    rt[i] = time - at[i];
+                    queue[rear++] = i;
                     visited[i] = 1;
                 }
+            }
+            continue;
+        }
 
-                printf(" P%d |", pid[i]);
+        int idx = queue[front++];
 
-                if (rem_bt[i] > tq)
-                {
-                    time += tq;
-                    rem_bt[i] -= tq;
-                }
-                else
-                {
-                    time += rem_bt[i];
-                    rem_bt[i] = 0;
-                    ct[i] = time;
-                    completed++;
-                }
+        g_pid[g_index++] = pid[idx];
+        timeline[t_index++] = time;
 
-                timeline[t_index++] = time;
-                executed = 1;
+        if (rt[idx] == 0 && rem_bt[idx] == bt[idx])
+            rt[idx] = time - at[idx];
+
+        if (rem_bt[idx] > tq)
+        {
+            rem_bt[idx] -= tq;
+            time += tq;
+        }
+        else
+        {
+            time += rem_bt[idx];
+            rem_bt[idx] = 0;
+            ct[idx] = time;
+            completed++;
+        }
+
+        /* Add newly arrived processes */
+        for (int i = 0; i < n; i++)
+        {
+            if (!visited[i] && at[i] <= time)
+            {
+                queue[rear++] = i;
+                visited[i] = 1;
             }
         }
 
-        if (!executed)
-        {
+        /* Reinsert current process if not finished */
+        if (rem_bt[idx] > 0)
+            queue[rear++] = idx;
+    }
+
+    timeline[t_index++] = time;
+
+    printf("\nGantt Chart:\n|");
+    for (int i = 0; i < g_index; i++)
+    {
+        if (g_pid[i] == 0)
             printf(" Idle |");
-            time++;
-            timeline[t_index++] = time;
-        }
+        else
+            printf(" P%d |", g_pid[i]);
     }
 
     printf("\n0");
-    for (int i = 0; i < t_index; i++)
-    {
+    for (int i = 1; i < t_index; i++)
         printf("    %d", timeline[i]);
-    }
+    printf("\n");
+
+    float avgWT = 0, avgTAT = 0;
 
     for (int i = 0; i < n; i++)
     {
         tat[i] = ct[i] - at[i];
         wt[i] = tat[i] - bt[i];
+
+        avgWT += wt[i];
+        avgTAT += tat[i];
     }
 
     printTable(n, pid, at, bt, ct, tat, wt, rt);
+
+    printf("\nAverage Waiting Time = %.2f\n", avgWT / n);
+    printf("Average Turnaround Time = %.2f\n", avgTAT / n);
 }
 
 // -------- Priority Scheduling --------
@@ -543,7 +589,7 @@ int main()
         srtf(n, at, bt);
         break;
     case 4:
-        rr(n, at, bt);
+        roundRobin(n, at, bt);
         break;
     case 5:
         priorityNonPreemptive(n, at, bt);
