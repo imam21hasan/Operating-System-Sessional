@@ -12,7 +12,7 @@ void printTable(int n, int pid[], int at[], int bt[], int ct[], int tat[], int w
     }
 }
 
-// FCFS
+// -------- FCFS --------
 void fcfs(int n, int at[], int bt[])
 {
     int ct[MAX], tat[MAX], wt[MAX], rt[MAX], pid[MAX];
@@ -82,7 +82,7 @@ void fcfs(int n, int at[], int bt[])
     printTable(n, pid, at, bt, ct, tat, wt, rt);
 }
 
-// SJF
+// -------- SJF --------
 void sjf(int n, int at[], int bt[])
 {
     int ct[MAX], tat[MAX], wt[MAX], rt[MAX], completed[MAX] = {0}, pid[MAX];
@@ -146,7 +146,7 @@ void sjf(int n, int at[], int bt[])
     printTable(n, pid, at, bt, ct, tat, wt, rt);
 }
 
-// SRTF
+// -------- SRTF --------
 void srtf(int n, int at[], int bt[])
 {
     int pid[MAX], rt[MAX], wt[MAX], tat[MAX], ct[MAX];
@@ -247,7 +247,7 @@ void srtf(int n, int at[], int bt[])
     printTable(n, pid, at, bt, ct, tat, wt, rt);
 }
 
-// Round Robin
+// -------- Round Robin --------
 void rr(int n, int at[], int bt[])
 {
     int tq;
@@ -325,44 +325,38 @@ void rr(int n, int at[], int bt[])
     printTable(n, pid, at, bt, ct, tat, wt, rt);
 }
 
-// Priority Scheduling
-void priorityScheduling(int n, int at[], int bt[])
+// -------- Priority Scheduling --------
+void priorityNonPreemptive(int n, int at[], int bt[])
 {
     int priority[MAX];
 
-    printf("Enter Priority : ");
-
+    printf("Enter Priority: ");
     for (int i = 0; i < n; i++)
         scanf("%d", &priority[i]);
 
-    int pid[MAX], rt[MAX], wt[MAX], tat[MAX], ct[MAX];
-    int rem_bt[MAX], visited[MAX] = {0};
+    int pid[MAX], ct[MAX], tat[MAX], wt[MAX], rt[MAX];
+    int completed[MAX] = {0};
 
     for (int i = 0; i < n; i++)
-    {
         pid[i] = i + 1;
-        rem_bt[i] = bt[i];
-    }
 
-    int completed = 0, time = 0;
+    int done = 0, time = 0;
 
     int g_pid[MAX], timeline[MAX];
     int g_index = 0, t_index = 0;
 
-    int prev = -1;
-
-    while (completed < n)
+    while (done < n)
     {
         int idx = -1;
-        int best_priority = 100000;
+        int bestPriority = 100000;
 
         for (int i = 0; i < n; i++)
         {
-            if (at[i] <= time && rem_bt[i] > 0)
+            if (at[i] <= time && !completed[i])
             {
-                if (priority[i] < best_priority)
+                if (priority[i] < bestPriority)
                 {
-                    best_priority = priority[i];
+                    bestPriority = priority[i];
                     idx = i;
                 }
             }
@@ -370,44 +364,27 @@ void priorityScheduling(int n, int at[], int bt[])
 
         if (idx == -1)
         {
-            if (prev != 0)
-            {
-                g_pid[g_index++] = 0;
-                timeline[t_index++] = time;
-            }
-
-            prev = 0;
+            g_pid[g_index++] = 0;
+            timeline[t_index++] = time;
             time++;
             continue;
         }
 
-        if (!visited[idx])
-        {
-            rt[idx] = time - at[idx];
-            visited[idx] = 1;
-        }
+        g_pid[g_index++] = pid[idx];
+        timeline[t_index++] = time;
 
-        if (prev != pid[idx])
-        {
-            g_pid[g_index++] = pid[idx];
-            timeline[t_index++] = time;
-        }
+        rt[idx] = time - at[idx];
 
-        prev = pid[idx];
+        time += bt[idx];
 
-        rem_bt[idx]--;
-        time++;
-
-        if (rem_bt[idx] == 0)
-        {
-            ct[idx] = time;
-            completed++;
-        }
+        ct[idx] = time;
+        completed[idx] = 1;
+        done++;
     }
 
     timeline[t_index++] = time;
 
-    printf("\n|");
+    printf("\nGantt Chart:\n|");
 
     for (int i = 0; i < g_index; i++)
     {
@@ -420,17 +397,117 @@ void priorityScheduling(int n, int at[], int bt[])
     printf("\n0");
 
     for (int i = 1; i < t_index; i++)
-    {
         printf("    %d", timeline[i]);
-    }
+
+    printf("\n");
+
+    float avgWT = 0, avgTAT = 0;
 
     for (int i = 0; i < n; i++)
     {
         tat[i] = ct[i] - at[i];
         wt[i] = tat[i] - bt[i];
+
+        avgWT += wt[i];
+        avgTAT += tat[i];
     }
 
     printTable(n, pid, at, bt, ct, tat, wt, rt);
+
+    printf("\nAverage Waiting Time = %.2f\n", avgWT / n);
+    printf("Average Turnaround Time = %.2f\n", avgTAT / n);
+}
+
+void priorityPreemptive(int n, int at[], int bt[])
+{
+    int priority[MAX];
+
+    printf("Enter Priority: ");
+    for (int i = 0; i < n; i++)
+        scanf("%d", &priority[i]);
+
+    int pid[MAX], ct[MAX], tat[MAX], wt[MAX], rt[MAX];
+    int completed[MAX] = {0};
+
+    for (int i = 0; i < n; i++)
+        pid[i] = i + 1;
+
+    int done = 0, time = 0;
+
+    int g_pid[MAX], timeline[MAX];
+    int g_index = 0, t_index = 0;
+
+    while (done < n)
+    {
+        int idx = -1;
+        int bestPriority = 100000;
+
+        for (int i = 0; i < n; i++)
+        {
+            if (at[i] <= time && !completed[i])
+            {
+                if (priority[i] < bestPriority)
+                {
+                    bestPriority = priority[i];
+                    idx = i;
+                }
+            }
+        }
+
+        if (idx == -1)
+        {
+            g_pid[g_index++] = 0;
+            timeline[t_index++] = time;
+            time++;
+            continue;
+        }
+
+        g_pid[g_index++] = pid[idx];
+        timeline[t_index++] = time;
+
+        rt[idx] = time - at[idx];
+
+        time += bt[idx];
+
+        ct[idx] = time;
+        completed[idx] = 1;
+        done++;
+    }
+
+    timeline[t_index++] = time;
+
+    printf("\nGantt Chart:\n|");
+
+    for (int i = 0; i < g_index; i++)
+    {
+        if (g_pid[i] == 0)
+            printf(" Idle |");
+        else
+            printf(" P%d |", g_pid[i]);
+    }
+
+    printf("\n0");
+
+    for (int i = 1; i < t_index; i++)
+        printf("    %d", timeline[i]);
+
+    printf("\n");
+
+    float avgWT = 0, avgTAT = 0;
+
+    for (int i = 0; i < n; i++)
+    {
+        tat[i] = ct[i] - at[i];
+        wt[i] = tat[i] - bt[i];
+
+        avgWT += wt[i];
+        avgTAT += tat[i];
+    }
+
+    printTable(n, pid, at, bt, ct, tat, wt, rt);
+
+    printf("\nAverage Waiting Time = %.2f\n", avgWT / n);
+    printf("Average Turnaround Time = %.2f\n", avgTAT / n);
 }
 
 int main()
@@ -450,7 +527,7 @@ int main()
     for (int i = 0; i < n; i++)
         scanf("%d", &bt[i]);
 
-    printf("\nSelect Scheduling Algorithm :\n1.FCFS\n2.SJF\n3.SRTF\n4.Round Robin\n5.Priority Scheduling\n");
+    printf("\nSelect Scheduling Algorithm :\n1.FCFS\n2.SJF\n3.SRTF\n4.Round Robin\n5.Priority Non-Preemptive\n6.Priority Preemptive\n");
     printf("Enter choice : ");
     scanf("%d", &choice);
 
@@ -469,8 +546,10 @@ int main()
         rr(n, at, bt);
         break;
     case 5:
-        priorityScheduling(n, at, bt);
+        priorityNonPreemptive(n, at, bt);
         break;
+    case 6:
+        priorityPreemptive(n, at, bt);
     default:
         printf("Invalid choice\n");
     }
